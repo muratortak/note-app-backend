@@ -15,13 +15,12 @@ const ObjectID = require('mongodb').ObjectID;
 const cookieParser = require('cookie-parser');
 app.use(express.json());
 
-app.use(cors({origin: 'http://localhost:3001', credentials: true}));
-
 var corsOptions = {
-  origin: 'http://127.0.0.1:3001',
+  origin: 'http://localhost:3001', 
   credentials: true
   // optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
+
 app.use(cors(corsOptions));
 
 app.use(cookieParser());
@@ -80,7 +79,7 @@ app.post('/login', async (req, res) => {
   // TODO: Add here pwd validator ( also add to front end ).
   // There are some test user cases with no password
   // and it causes error upon request to login.
-  console.log("user.pwd: ", user);
+  console.log("user ", user);
   const isValid = await validateUser(pwd, user.pwd);
   if (!isValid) {
     return res.status(400).json({message: 'Login credentials are wrong!'});
@@ -107,6 +106,8 @@ app.post('/login', async (req, res) => {
         httpOnly: false,
       });
 
+      console.log("USer right before sending back: ", user);
+
   return res.status(200).json({success: 'Succesfully Logged In', user});
 });
 
@@ -132,29 +133,29 @@ app.get('/notes', auth, async (req, res) => {
   return res.status(200).json({message: 'Notes successfull', notesReturn});
 });
 
+// update location
 app.post('/savelocation', auth, async(req, res) => {
   console.log('req, ', req.user);
-  console.log('req note, ', req.body);
   var id = req.user;
   var noteId = req.body.noteID;
+  console.log('req note, ', new ObjectID(noteId));
   var x = req.body.x;
   var y = req.body.y;
-  const notes = await db.collection('Notes').findOne({userId: new ObjectID(id)});
-  notes.notes.map((f) => {
-    if(f._id == noteId) {
-      f.x = x;
-      f.y = y;
-      console.log('x: ', f.x);
-      console.log('y: ', f.y);
+  const noteObject = await db.collection('Notes').findOne({userId: new ObjectID(id)});
+
+  await db.collection('Notes').updateOne(
+    {
+      userId: new ObjectID(id)
+    },
+    {
+      $set: { "notes.$[elem].x": x, "notes.$[elem].y": y }
+    },
+    {
+      arrayFilters: [{"elem._id": new ObjectID(noteId)}]
     }
-  });
-  console.log('note found: ', notes);
-
-  await db.collection('Notes').updateOne(notes)
-
-      .find({userId: new ObjectID(userId)}).toArray();
-  console.log('Notes in getAllNotes: ', notes);
-  return res.status(200).json({message: 'Notes successfull', notes});
+  )
+  
+  return res.status(200).json({message: 'Notes successfull', noteObject});
 });
 
 // Add notes

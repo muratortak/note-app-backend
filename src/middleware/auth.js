@@ -2,13 +2,9 @@ const jwt = require('jsonwebtoken');
 const mongo = require('mongodb').MongoClient;
 
 const auth = async (req, res, next) => {
-  console.log('this is auth before try');
-  console.log('cookie: ', req);
-  console.log('this is auth before try');
   try {
     const {token} = req.cookies;
     const decoded = await jwt.verify(token, 'thisisthetoken');
-    console.log('decoded: ', decoded);
     // TODO: find the user
     // if(!user) {
     //     throw new Error();
