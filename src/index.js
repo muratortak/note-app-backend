@@ -155,24 +155,60 @@ app.post('/savelocation', auth, async(req, res) => {
     }
   )
   
-  return res.status(200).json({message: 'Notes successfull', noteObject});
+  // return res.status(200).json({message: 'Notes successfull', noteObject});
+  
+  // Return all the notes again.
+  // TODO: Find a better way to only send the updated note and merge in the State on the front-end.
+  const notes = await db.collection('Notes')
+      .findOne({userId: new ObjectID(id)});
+  const notesReturn = notes.notes;
+  console.log("note returns in add new note: ", notesReturn);
+  return res.status(200).json({message: 'Notes successfull', notesReturn});
 });
 
 // Add notes
 app.post('/addNote', auth, async(req, res) => {
   const userId = req.user;
   console.log('user id in add note: ', userId);
-  const {type, title, note, coord, zIndex } = req.body; 
+  const {type, title, note, x, y } = req.body; 
   console.log('title in add note: ', title);
   const newNote = await db.collection('Notes')
     .findOneAndUpdate(
       {userId: new ObjectID(userId)},
       {
-        $push: { notes: { _id: new ObjectID(), type, title, note, coord, zIndex}, }
+        $push: { notes: { _id: new ObjectID(), type, title, note, x, y }, }
       },
       {returnOriginal: false},
       )
-  res.status(200).json({message: 'Note successully saved'});
+  // Return all the notes again.
+  // TODO: Find a better way to only send the updated note and merge in the State on the front-end.
+  const notes = await db.collection('Notes')
+      .findOne({userId: new ObjectID(userId)});
+  const notesReturn = notes.notes;
+  console.log("note returns in add new note: ", notesReturn);
+  return res.status(200).json({message: 'Notes successfull', notesReturn});
+});
+
+app.get('/deleteNote/:noteID', auth, async(req, res) => {
+  const userId = req.user;
+
+  var noteId = req.params.noteID;
+  console.log("Note id in delete note: ", noteId);
+  await db.collection('Notes').update(
+    {
+      userId: new ObjectID(userId)
+    },
+    {
+      $pull: { notes: { _id: new ObjectID(noteId)} }
+    });
+  // Return all the notes again.
+  // TODO: Find a better way to only send the updated note and merge in the State on the front-end.
+  const notes = await db.collection('Notes')
+    .findOne({userId: new ObjectID(userId)});
+  const notesReturn = notes.notes;
+  console.log("note returns in add new note: ", notesReturn);
+  return res.status(200).json({message: 'Notes successfull', notesReturn});
+  
 });
 
 app.put('/note', auth, (req, res) => {
