@@ -14,6 +14,7 @@ const auth = require('./middleware/auth');
 const ObjectID = require('mongodb').ObjectID;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const UserRepository = require('../src/Frameworks/Persistance/DB/MongoUserRepository');
 // app.use(express.json());
 app.use(express.json({limit: '10mb'}));
 var corsOptions = {
@@ -48,12 +49,9 @@ app.post('/me', auth, async (req, res) => {
 
 app.post('/updateme', auth, async (req, res) => {
   const userID = req.user;
-  console.log("USERID: ", userID);
-  console.log("USERNAME BODY: " + req.body.username);
-  console.log("PASSWORD BODY: " + req.body.newPassword);
   var newUser = req.body;
   Object.keys(newUser).forEach((key) => (newUser[key] == null || newUser[key].trim() == '') && delete newUser[key]);
-  console.log("NEW USER OBJ: ", newUser);
+  
   if(newUser.pwd !== undefined) {
     newUser.pwd = await getHashed(newUser.pwd);
     console.log("UPDATE ME: PWD: " + newUser.pwd + " NEW USERNAME: " + newUser.userName + " IMAGE:", newUser.image)
@@ -64,7 +62,7 @@ app.post('/updateme', auth, async (req, res) => {
       {$set: newUser},
       {returnOriginal: false},
   );
-  console.log("RETURN USER ON UPDATE: ", user.value);
+
   var user = user.value;
   return res.status(200).json({success: 'Succesfully Updated Profile', user});
 });
@@ -114,9 +112,14 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
   const username = req.body.userName;
   const pwd = req.body.password;
-  let user = await db.collection(collectionName).findOne({userName: username});
   
-  if(user === null) {
+  let userRepo =  new UserRepository();
+  await userRepo.connect();
+  let user;
+  try{
+    user = await userRepo.getByUserName(username);
+  } catch(err) {
+    console.log("error in index. ", err);
     return res.status(400).json({message: 'Login credentials are wrong!'});
   }
   
@@ -126,29 +129,36 @@ app.post('/login', async (req, res) => {
     return res.status(400).json({message: 'Login credentials are wrong!'});
   }
   const {token, tokenClient} = await getToken(user._id);
-  user = await db.collection(collectionName)
-      .findOneAndUpdate(
-          {_id: new ObjectID(user._id)},
-          {$set: {token: tokenClient}},
-          {returnOriginal: false},
-      );
-  user = user.value;
-  res.cookie('token', token,
-      {
+  
+  try {
+    user = await userRepo.updateToken(user._id, tokenClient);
+    res.cookie('token', token, {
         maxAge: 60 * 60 * 1000,
         httpOnly: true,
         sameSite: false,
         secure: false,
-      });
-  res.cookie('tokenClient', tokenClient,
-      {
+    });
+    res.cookie('tokenClient', tokenClient, {
         maxAge: 60 * 60 * 1000,
         httpOnly: false,
-      });
+    });
 
-      console.log("USer right before sending back: ", user);
+    console.log("USer right before sending back: ", user);
 
-  return res.status(200).json({success: 'Succesfully Logged In', user});
+    return res.status(200).json({success: 'Succesfully Logged In', user});
+  } catch(err) {
+    console.log("error ", err);
+    return res.status(400).json({message: 'Something went wrong.'});
+  }
+  
+  // user = await db.collection(collectionName)
+  //     .findOneAndUpdate(
+  //         {_id: new ObjectID(user._id)},
+  //         {$set: {token: tokenClient}},
+  //         {returnOriginal: false},
+  //     );
+  // user = user.value;
+  
 });
 
 // Unlock pwd for pwd update in profile
@@ -157,12 +167,11 @@ app.post('/unlockpwd', auth, async(req, res) => {
   var sentPWD = req.body.currentPassword;
   // var getHashedPWD = await getHashed(sentPWD);
   var savedPWD = await db.collection(collectionName).findOne({_id: ObjectID(userID)});
-  console.log("SENT PWD: ", sentPWD);
-  console.log("SAVED PWD: ", savedPWD.pwd);
+
   var result = await validateUser(sentPWD, savedPWD.pwd);
-  console.log("RESULT OF VALIDATION: ", result);
+  
   if(result) {
-    var returnObj ={success: 'success'};
+    var returnObj = {success: 'success'};
     return res.status(200).json(returnObj)
   }
   return res.status(401).json({message: 'Provided pwd is wrong!'});
@@ -186,42 +195,43 @@ app.get('/notes', auth, async (req, res) => {
   const userId = req.user;
   const notes = await db.collection('Notes')
       .findOne({userId: new ObjectID(userId)});
-  const notesReturn = notes === null ? notes.notes : null;
+  console.log('return notes: ', notes);
+  const notesReturn = notes === null ? null : notes.notes;
   return res.status(200).json({message: 'Notes successfull', notesReturn});
 });
 
-// update location
-app.post('/savelocation', auth, async(req, res) => {
-  console.log('req, ', req.user);
-  var id = req.user;
-  var noteId = req.body.noteID;
-  console.log('req note, ', new ObjectID(noteId));
-  var x = req.body.x;
-  var y = req.body.y;
-  const noteObject = await db.collection('Notes').findOne({userId: new ObjectID(id)});
+// // update location
+// app.post('/savelocation', auth, async(req, res) => {
+//   console.log('req, ', req.user);
+//   var id = req.user;
+//   var noteId = req.body.noteID;
+//   console.log('req note, ', new ObjectID(noteId));
+//   var x = req.body.x;
+//   var y = req.body.y;
+//   const noteObject = await db.collection('Notes').findOne({userId: new ObjectID(id)});
 
-  await db.collection('Notes').updateOne(
-    {
-      userId: new ObjectID(id)
-    },
-    {
-      $set: { "notes.$[elem].x": x, "notes.$[elem].y": y }
-    },
-    {
-      arrayFilters: [{"elem._id": new ObjectID(noteId)}]
-    }
-  )
+//   await db.collection('Notes').updateOne(
+//     {
+//       userId: new ObjectID(id)
+//     },
+//     {
+//       $set: { "notes.$[elem].x": x, "notes.$[elem].y": y }
+//     },
+//     {
+//       arrayFilters: [{"elem._id": new ObjectID(noteId)}]
+//     }
+//   )
   
-  // return res.status(200).json({message: 'Notes successfull', noteObject});
+//   // return res.status(200).json({message: 'Notes successfull', noteObject});
   
-  // Return all the notes again.
-  // TODO: Find a better way to only send the updated note and merge in the State on the front-end.
-  const notes = await db.collection('Notes')
-      .findOne({userId: new ObjectID(id)});
-  const notesReturn = notes.notes;
-  console.log("note returns in add new note: ", notesReturn);
-  return res.status(200).json({message: 'Notes successfull', notesReturn});
-});
+//   // Return all the notes again.
+//   // TODO: Find a better way to only send the updated note and merge in the State on the front-end.
+//   const notes = await db.collection('Notes')
+//       .findOne({userId: new ObjectID(id)});
+//   const notesReturn = notes.notes;
+//   console.log("note returns in add new note: ", notesReturn);
+//   return res.status(200).json({message: 'Notes successfull', notesReturn});
+// });
 
 // update Note
 app.post('/updateNote', auth, async(req, res) => {
