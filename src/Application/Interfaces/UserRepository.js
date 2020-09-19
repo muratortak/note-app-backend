@@ -1,10 +1,10 @@
 module.exports = class UserRepository {
     constructor() {};
-
+    
     add(newUser) {
         return Promise.reject(new Error('not implemented.'));
     }
-
+    
     getById(userId) {
         return Promise.reject(new Error('not implemented.'));
     }

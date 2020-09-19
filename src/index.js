@@ -14,7 +14,8 @@ const auth = require('./middleware/auth');
 const ObjectID = require('mongodb').ObjectID;
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const UserRepository = require('../src/Frameworks/Persistance/DB/MongoUserRepository');
+const getUser = require('../src/Application/UseCases/User/GetUser');
+// const UserRepository = require('../src/Frameworks/Persistance/DB/MongoUserRepository');
 // app.use(express.json());
 app.use(express.json({limit: '10mb'}));
 var corsOptions = {
@@ -116,8 +117,8 @@ app.post('/login', async (req, res) => {
   let userRepo =  new UserRepository();
   await userRepo.connect();
   let user;
-  try{
-    user = await userRepo.getByUserName(username);
+  try {
+    user = await getUser(username);
   } catch(err) {
     console.log("error in index. ", err);
     return res.status(400).json({message: 'Login credentials are wrong!'});
@@ -150,15 +151,7 @@ app.post('/login', async (req, res) => {
     console.log("error ", err);
     return res.status(400).json({message: 'Something went wrong.'});
   }
-  
-  // user = await db.collection(collectionName)
-  //     .findOneAndUpdate(
-  //         {_id: new ObjectID(user._id)},
-  //         {$set: {token: tokenClient}},
-  //         {returnOriginal: false},
-  //     );
-  // user = user.value;
-  
+
 });
 
 // Unlock pwd for pwd update in profile
