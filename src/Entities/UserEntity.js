@@ -1,6 +1,10 @@
-module.exports = class User {
+var IBaseEntity = require('./IBaseEntity');
+
+class User extends IBaseEntity {
     constructor(user) {
-        this.usuerid = user._id;
+        super(user.uid);
+
+        this.useruid = user.uid;
         this.username = user.userName;
         this.pwd = user.pwd;
         this.token = user.token;
@@ -8,3 +12,5 @@ module.exports = class User {
         this.description = user.description;
     }
 }
+
+module.exports = User;

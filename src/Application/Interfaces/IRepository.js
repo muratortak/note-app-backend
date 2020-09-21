@@ -1,27 +1,23 @@
-module.exports = class UserRepository {
-    constructor() {};
-
-    add(newUser) {
+class IRepository {
+    async add(item) {
         return Promise.reject(new Error('not implemented.'));
     }
 
-    getById(userId) {
+    async getAll() {
+        return Promise.reject(new Error('not implemented.'));
+    }
+
+    async getById(itemid) {
         return Promise.reject(new Error('not implemented.'));
     }
     
-    getByUserName(userName) {
-        return Promise.reject(new Error('not implemented.'));
-    }
-    
-    update(updatedUser) {
+    async update(item) {
         return Promise.reject(new Error('not implemented.'));
     }
 
-    delete(userId) {
-        return Promise.reject(new Error('not implemented.'));
-    }
-
-    updateToken(userId, token, clientToken) {
+    async delete(itemid) {
         return Promise.reject(new Error('not implemented.'));
     }
 }
+
+module.exports = IRepository;

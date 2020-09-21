@@ -1,4 +1,4 @@
-module.exports = (UserRepository) => {
+getUser = (UserRepository) => {
     async function Execute(userId) {
         return UserRepository.getById(userId);
     };
@@ -7,3 +7,5 @@ module.exports = (UserRepository) => {
         Execute
     };
 };
+
+export default getUser;

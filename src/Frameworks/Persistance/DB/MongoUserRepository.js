@@ -1,61 +1,52 @@
 const client = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
-const UserRepository = require('../../../Application/Interfaces/UserRepository');
+const IUserRepository = require('../../../Application/Interfaces/IUserRepository');
 const url = 'mongodb://localhost:27017';
 const connectionOptions = {poolSize: process.env.MONGO_POOLSIZE || 1};
 const dbName = 'dashboard';
 
-module.exports = class MongoUserRepository extends UserRepository {
+class MongoUserRepository extends IUserRepository {
     constructor() {
         super();
-        // let db;
-        // client.connect(url, connectionOptions, (err, database) => {
-        //     if (err) {
-        //         console.error("Error connecting to DB in repo ", err);
-        //         throw new Error(err);
-        //     }
-        //     console.log('DB is connected in Mongo User Repository.');
-        //     db = database.db(dbName);
-        //     console.log("DB IN CONSTRUCTOR: ");
-        //     this.db = db;
-        //     this.collectionName = 'Users';
-        // });
         this.db = null;
         this.collectionName = 'Users';
     }
 
     async connect() {
-        var connection = await client.connect(url, connectionOptions, (err, database) => {
-            if (err) {
-                console.error("Error connecting to DB in repo ", err);
-                throw new Error(err);
-            }
-            // console.log('db: ', db)
-            db = database.db(dbName);
-        });
-        console.log("COnnection: ", connection);
-        this.db = db;
+        var db = await client.connect(url, connectionOptions);
+        this.db = db.db(dbName);
     }
 
-    add(newUser) {
+    async add(newUser) {
+        try {
+            const ret = await this.db.collection(this.collectionName).insertOne(newUser);
+            if (ret.result.n === 1 && ret.result.ok === 1) {
+                var user = ret.ops[0];
+                return user.value;
+            }
+            return null;
+        } catch(err) {
+            console.log("Something went wrong while saving: ", err);
+            throw new Error("Someting went wrong while saving: ", err);
+        }
+    }
+
+    async getAll(userId) {
         return Promise.reject(new Error('not implemented.'));
     }
 
-    getById(userId) {
-    //     const {token, tokenClient} = await getToken(user._id);
-    //     user = await this.db.collection(collectionName)
-    //   .findOneAndUpdate(
-    //       {_id: new ObjectID(userId)},
-    //       {$set: {token: tokenClient}},
-    //       {returnOriginal: false},
-    //   );
-      return Promise.reject(new Error('not implemented.'));
-
+    async getById(userId) {
+        try{
+            let user = await this.db.collection(this.collectionName).findOne({_id: ObjectID(userId)})
+            return user;
+        } catch(err) {
+            console.log("ERROR FINDING USER WITH ID" , err)
+            throw new Error('error finding user with id.');
+        }
     }
 
     async getByUserName(userName) {
         try{
-            console.log("THIS.DB in GETBYUSERNAME: ", this.db);
             let user = await this.db.collection(this.collectionName).findOne({userName});
             return user;
         } catch(err) {
@@ -64,14 +55,43 @@ module.exports = class MongoUserRepository extends UserRepository {
         }
     }
 
-    update(updatedUser) {
+    async update(userId, updatedUser) {
+        let user = await this.db.collection(this.collectionName)
+                .findOneAndUpdate(
+                    {_id: new ObjectID(userId)},
+                    {$set: updatedUser},
+                    {returnOriginal: false},
+                );
+
+        return user.value;
+    }
+
+    async delete(userId) {
         return Promise.reject(new Error('not implemented.'));
     }
 
-    delete(userId) {
-        return Promise.reject(new Error('not implemented.'));
+    async updateWithFilter(findParamObject, paramValueObject) {
+        console.log("PARAM IN WITH FILTER: ", findParamObject._id);
+        console.log("PARAM IN WITH FILTER SECOND: ", paramValueObject.token);
+        if(typeof findParamObject !== 'object') throw new Error(`First Paramater is not an object type.`);
+        if(typeof paramValueObject !== 'object') throw new Error(`Second Paramater is not an object type.`);
+        // Object.keys(findParamObject).forEach(key => key.name.includes('_id') > -1 ? findParamObject[key] = new ObjectID(findParamObject[key]) : findParamObject[key]);
+        console.log("PARAM IN WITH FILTER: ", findParamObject._id);
+        console.log("PARAM IN WITH FILTER SECOND: ", paramValueObject.token);
+        try{
+            let user = await this.db.collection(this.collectionName)
+            .findOneAndUpdate(
+                findParamObject,
+                {$set: paramValueObject},
+                {returnOriginal: false},
+            );
+            console.log("USER IN USER REPO: ", user.value);
+            return user.value;
+        } catch(err) {
+            console.log("Problem saving tokens. ", err);
+            throw new Error('Problem saving tokens. ', err)
+        }
     }
-
     async updateToken(userId, tokenClient) {
         try{
             let user = await this.db.collection(this.collectionName)
@@ -87,6 +107,6 @@ module.exports = class MongoUserRepository extends UserRepository {
         }
     }
 
-
 }
 
+module.exports = MongoUserRepository;

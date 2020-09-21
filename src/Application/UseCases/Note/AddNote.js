@@ -1,4 +1,4 @@
-module.exports = (NoteRepository) => {
+addNote = (NoteRepository) => {
     async function Execute(title, note, type) {
         if(title === null || title.trim() === ''
             || type === null || type.trim() === ''
@@ -12,3 +12,7 @@ module.exports = (NoteRepository) => {
         Execute
     };
 };
+
+
+export default addNote;
+
