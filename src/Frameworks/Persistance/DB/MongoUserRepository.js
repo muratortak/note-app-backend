@@ -50,7 +50,7 @@ class MongoUserRepository extends IUserRepository {
             let user = await this.db.collection(this.collectionName).findOne({userName});
             return user;
         } catch(err) {
-            console.log("ERROR FINDIN USER" , err)
+            console.log("ERROR FINDIN USER test " , err)
             throw new Error('error finding user');
         }
     }
@@ -94,7 +94,7 @@ class MongoUserRepository extends IUserRepository {
     }
     async updateToken(userId, tokenClient) {
         try{
-            let user = await this.db.collection(this.collectionName)
+            let user = await Connection.db.db('dashboard').collection('Users')
             .findOneAndUpdate(
                 {_id: new ObjectID(userId)},
                 {$set: {token: tokenClient}},
@@ -106,7 +106,7 @@ class MongoUserRepository extends IUserRepository {
             throw new Error('Problem saving tokens. ', err)
         }
     }
-
 }
+
 
 module.exports = MongoUserRepository;
