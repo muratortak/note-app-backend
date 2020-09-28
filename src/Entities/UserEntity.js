@@ -2,10 +2,11 @@ var IBaseEntity = require('./IBaseEntity');
 
 class User extends IBaseEntity {
     constructor(user) {
-        super(user.uid);
+        super();
 
-        this.useruid = user.uid;
-        this.username = user.userName;
+        this._id = user.id;
+        this.userName = user.username;
+        this.email = user.email;
         this.pwd = user.pwd;
         this.token = user.token;
         this.image = user.image;

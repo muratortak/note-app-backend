@@ -18,13 +18,13 @@ class UserService extends IUserService {
         }
     }
 
-    async updateUser(userId, updatedUser) {
+    async updateUser(updatedUser) {
         try{
             Object.keys(updatedUser).forEach((key) => (updatedUser[key] == null || updatedUser[key].trim() == '') && delete updatedUser[key]);
             if(updatedUser.pwd !== undefined) {
                 updatedUser.pwd = await this.getHashed(updatedUser.pwd);
             }
-            var user = await this.userRepository.update(userId, updatedUser);
+            var user = await this.userRepository.update(updatedUser.id, updatedUser);
             return user;
         } catch(err) {
             console.log("error ", err);

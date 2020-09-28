@@ -7,7 +7,7 @@ class NoteService extends INoteService {
         super();
         this.noteRepository = noteRepository;
     }
-
+    // Usecase created.
     async createnote(userId, newNote) {
         var note = this.noteRepository.getAll(userId);
         if(note !== null) {
@@ -17,7 +17,7 @@ class NoteService extends INoteService {
             await this.noteRepository.insert(userId, newNote);
         }
     }
-
+    // Usecase created.
     async getAllNotes(userId) {
         try {
             const notes = await this.noteRepository.getAll(userId);
@@ -31,7 +31,7 @@ class NoteService extends INoteService {
     async getNoteById(userId, noteId) {
 
     }
-
+    // Usecase created.
     async updateNote(userId, updatedNote) {
         try{
             await this.noteRepository.update(userId, updatedNote);

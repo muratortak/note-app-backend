@@ -55,11 +55,14 @@ class MongoUserRepository extends IUserRepository {
         }
     }
 
-    async update(userId, updatedUser) {
+    async update(updatedUser) {
+        var propObj = {};
+        Object.assign(propObj, updatedUser);
+        delete propObj._id;
         let user = await this.db.collection(this.collectionName)
                 .findOneAndUpdate(
-                    {_id: new ObjectID(userId)},
-                    {$set: updatedUser},
+                    {_id: new ObjectID(updatedUser._id)},
+                    {$set: propObj},
                     {returnOriginal: false},
                 );
 

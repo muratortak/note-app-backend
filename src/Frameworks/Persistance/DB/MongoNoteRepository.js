@@ -17,14 +17,14 @@ class MongoNoteRepository extends INoteRepository {
         this.db = db.db(dbName);
     }
 
-    async add(userId, newNote) {
+    async add(newNote) {
         try {
-            newNote._id = new ObjectID();
+            newNote.note._id = new ObjectID();
             await this.db.collection(this.collectionName)
                     .findOneAndUpdate(
-                    {userId: new ObjectID(userId)},
+                    {userId: new ObjectID(newNote.userId)},
                     {
-                        $push: { notes: newNote, }
+                        $push: { notes: newNote.note }
                     },
                     {returnOriginal: false},
                     )
@@ -71,27 +71,27 @@ class MongoNoteRepository extends INoteRepository {
         }
     }
 
-    async update(userId, updatedNote) {
+    async update(updatedNote) {
         try {
             await this.db.collection(this.collectionName)
                     .updateOne(
                         {
-                            userId: new ObjectID(userId)
+                            userId: new ObjectID(updatedNote.userId)
                           },
                           {
                             $set:
                             { 
-                              "notes.$[elem].title": updatedNote.title,
-                              "notes.$[elem].type": updatedNote.type,
-                              "notes.$[elem].note": updatedNote.note,
-                              "notes.$[elem].width": updatedNote.width,
-                              "notes.$[elem].height": updatedNote.height,
-                              "notes.$[elem].x": updatedNote.x,
-                              "notes.$[elem].y": updatedNote.y,
+                              "notes.$[elem].title": updatedNote.note.title,
+                              "notes.$[elem].type": updatedNote.note.type,
+                              "notes.$[elem].note": updatedNote.note.note,
+                              "notes.$[elem].width": updatedNote.note.width,
+                              "notes.$[elem].height": updatedNote.note.height,
+                              "notes.$[elem].x": updatedNote.note.x,
+                              "notes.$[elem].y": updatedNote.note.y,
                             }
                           },
                           {
-                            arrayFilters: [{"elem._id": new ObjectID(updatedNote._id)}]
+                            arrayFilters: [{"elem._id": new ObjectID(updatedNote.note._id)}]
                           }
                     );
 
@@ -101,14 +101,14 @@ class MongoNoteRepository extends INoteRepository {
         }
     }
 
-    async delete(userId, noteId) {
+    async delete(note) {
         try {
             await this.db.collection(this.collectionName).updateOne(
                 {
-                  userId: new ObjectID(userId)
+                  userId: new ObjectID(note.userId)
                 },
                 {
-                  $pull: { notes: { _id: new ObjectID(noteId)} }
+                  $pull: { notes: { _id: new ObjectID(note.note._id)} }
                 });
         } catch(err) {
             console.log(`Something went wrong while deleting note at MongoDB Repo layer. ${err}`);
