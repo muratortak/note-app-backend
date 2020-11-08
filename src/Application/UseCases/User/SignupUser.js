@@ -1,5 +1,4 @@
 const bcrypt = require('bcrypt');
-const LoginUser = require('./LoginUser');
 
 class SignupUser {
     constructor(userRepository) {
@@ -7,14 +6,12 @@ class SignupUser {
     }
 
     async signupUser(user) {
-        await this._userRepository.connect();
-        user.pwd = await this.getHashed(user.pwd);
-        var addedUser = await this._userRepository.add(user);
-        if(addedUser !== null) {
-            var userLogin = new LoginUser();
-            return await userLogin(addedUser);
-        } else {
-            return null;
+        try {
+            user.pwd = await this.getHashed(user.pwd);
+            return await this._userRepository.add(user);
+        } catch(err) {
+            console.log(`Error on Signup in use case: ${err}`);
+            throw new Error(`Error on Signup in use case: ${err}`);
         }
     };
 
@@ -24,6 +21,5 @@ class SignupUser {
       };
       
 }
-
 
 module.exports = SignupUser;

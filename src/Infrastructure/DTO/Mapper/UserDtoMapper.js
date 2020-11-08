@@ -1,5 +1,6 @@
 const User = require('../../../Entities/UserEntity');
 const UserDTO = require('../UserDTO');
+const Constants = require('../../Constants');
 
 class UserDtoMapper {
     constructor() {
@@ -29,6 +30,29 @@ class UserDtoMapper {
 
         return userDto;
     }
+
+    authWrapper(user, authenticationObject) {
+        switch(authenticationObject.name) {
+            case 'google':
+                user.isOAuth = Constants.google;
+                break;
+            case 'facebook':
+                user.isOAuth = Constants.facebook;
+                break;
+            case 'twitter':
+                user.isOAuth = Constants.twitter;
+                break;
+            default:
+                user.isOAuth = Constants.web;
+                break;
+        }
+        console.log("USER TOKEN IN AUTHWRAPPER: ",authenticationObject.token);
+        user.token = authenticationObject.token;
+        user.oAuthId = authenticationObject.googleId;
+        return user;
+    }
 }
+
+// TODO: ENUM-like authentication {app = 0, google = 1, facebook = 2, twitter = 3}
 
 module.exports = UserDtoMapper;

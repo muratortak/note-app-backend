@@ -5,14 +5,12 @@ class GetAllNote {
     }
 
     async getAllNotes(user) {
-        if(
-            user.userId === null || 
-            user.userId === '' || 
-            typeof user.userid === undefined) {
-            throw new Error('User is not valid.');
+        try {
+            return await this._noteRepository.getAll(user.userId);
+        } catch(err) {
+            console.log(`Error while getting all notes in use case: ${err}`);
+            throw new Error(`Error while getting all notes in use case: ${err}`);
         }
-        await this._noteRepository.connect();
-        return await this._noteRepository.getAll(user.userId);
     };
 }
 

@@ -1,6 +1,3 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
 class LogoutUser {
     constructor(userRepository) {
         this._userRepository = userRepository;
@@ -8,13 +5,13 @@ class LogoutUser {
 
     async logoutUser(user) {
         try {
-            await this._userRepository.connect();
-            var result = await this._userRepository.updateWithFilter(Object.create({_id: user._id}), Object.create({token: 'empty'}));
-            console.log("RESULT OF LOGOUT IN USERSERVICE: ", result);
+            var findParamObject = {_id: user._id};
+            var paramValueObject = {token: ''};
+            var result = await this._userRepository.updateWithFilter(findParamObject, paramValueObject);
             return result;
         } catch(err) {
-            console.log(`Error on logout in userService: ${err}`);
-            throw new Error(`Error on logout in userService: ${err}`);
+            console.log(`Error on logout in use case: ${err}`);
+            throw new Error(`Error on logout in use case: ${err}`);
         }
     };
 

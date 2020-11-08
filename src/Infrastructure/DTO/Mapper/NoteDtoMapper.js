@@ -7,6 +7,11 @@ class NoteDtoMapper {
     }
 
     toPersistant(userid, body) {
+        console.log("USERID IN NOTE DTO MAPPER: ", userid);
+        const isParamsValid = this.toPersistantValidate(userid);
+        if(!isParamsValid) {
+            throw new Error("Sent data is broken");
+        }
         var note = {};
         note.id       = (typeof body._id === undefined ? '' : body._id);
         note.x        = (typeof body.initialx === undefined ? '' : body.initialx);
@@ -32,6 +37,14 @@ class NoteDtoMapper {
         noteDto.width = persistantNote.type;
 
         return noteDto;
+    }
+
+    toPersistantValidate(userid) {
+        if(userid === null || userid.trim() === '' || typeof userid === undefined) {
+            return false;
+        }
+
+        return true;
     }
 }
 
