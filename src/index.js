@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const app = require('express')();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 80;
 const dotenv = require('dotenv');
 const url = 'mongodb://localhost:27017/';
 
@@ -15,7 +15,6 @@ var corsOptions = {
   credentials: true
 }
 
-// TODO: Make use of .ENV to keep keys and salts in safe
 // TODO: Make use of Salt and Hash for Password encryption.
 // TODO: Look up for a better Token Management.
 // TODO: Implement Google Signup/Sign in.
