@@ -29,8 +29,8 @@ dotenv.config();
 app.use(express.json({limit: '10mb'}));
 app.use(cors(corsOptions));
 app.use(cookieParser());
-app.use('/user', userRouter);
-app.use('/note', noteRouter);
+app.use('/api/user', userRouter);
+app.use('/api/note', noteRouter);
 
 try {
   mongoose.connect(url + process.env.DB_NAME, {useNewUrlParser: true});
