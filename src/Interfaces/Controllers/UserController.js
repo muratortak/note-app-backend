@@ -108,7 +108,7 @@ module.exports = {
         
         const comingOAuthType = Constants[oAuthTokenObject.name];
         if(comingOAuthType !== userFound.isOAuth) {
-          return res.status(400).json({message: 'Unauthorized user inner. WRONG OAUTH TYPE'});
+          return res.status(400).json({message: 'User is not authorized.'});
         }
         const user = await oAuthlogin.login(userFound);
         res.cookie('token', user.token, {
@@ -130,7 +130,7 @@ module.exports = {
         return res.status(200).json({success: 'Succesfully Logged In', user});
       } catch(err) {
         console.log(`error ${err}`)
-        return res.status(400).json({message: 'Unauthorized user OUTSIDE.'});
+        return res.status(400).json({message: 'User is not authorized.'});
       }
     },
 

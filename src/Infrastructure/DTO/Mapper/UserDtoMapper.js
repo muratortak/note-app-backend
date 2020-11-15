@@ -8,6 +8,7 @@ class UserDtoMapper {
     }
 
     toPersistant(userId, body) {
+        console.log("TO PERSISTANT: ", body);
         var user = {};
         user.id             = (typeof userId === undefined ? '' : userId);
         user.username       = (typeof body.userName === undefined ? '' : body.userName);

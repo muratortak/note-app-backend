@@ -1,12 +1,13 @@
 class OAuthLoginUser {
     constructor(userRepository) {
-        this._userRepository  = userRepository;
+        this._userRepository = userRepository;
     }
 
     async login(user) {
         try{
+            console.log("USER IN LOGIN USER: ", user);
             var findParamObject = {oAuthId: user.oAuthId};
-            var paramValueObject = {token: user.token};
+            var paramValueObject = {token: user.token, image: user.image};
             var result = this._userRepository.updateWithFilter(findParamObject, paramValueObject);
             return result;
         } catch(err) {
