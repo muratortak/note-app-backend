@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const app = require('express')();
-const port = process.env.PORT || 80;
+const port = process.env.PORT || 3000;
 const dotenv = require('dotenv');
 const url = 'mongodb://localhost:27017/';
 
