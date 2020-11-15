@@ -38,7 +38,7 @@ module.exports = {
               httpOnly: false,
             });
           return res.status(201)
-              .json({success: `${ret.insertedCount} User created.`, user});
+              .json({success: `User created.`, user});
         } catch(err) {
           return res.status(400).json({error: `User can't be created: ${err}`});
         }
