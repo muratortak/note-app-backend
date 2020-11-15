@@ -40,7 +40,7 @@ module.exports = {
           return res.status(201)
               .json({success: `${ret.insertedCount} User created.`, user});
         } catch(err) {
-          return res.status(400).json({error: `User can't be created.`});
+          return res.status(400).json({error: `User can't be created: ${err}`});
         }
     },
 
